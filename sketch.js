@@ -1,63 +1,126 @@
+// Lucas Jonson Perussolo
+// Projeto da areia que empilha
+
 function make2DArray(cols, rows) {
     let arr = new Array(cols);
     for (let i = 0; i < arr.length; i++) {
-        arr[i] = new Array(rows);
-        for (let j = 0; j < arr[i].length; j++)
-            arr[i][j] = 0;
-            
+      arr[i] = new Array(rows);
+      // Fill the array with 0s
+      for (let j = 0; j < arr[i].length; j++) {
+        arr[i][j] = 0;
+      }
     }
     return arr;
-}
-
-let grid;
-let w = 10;
-let cols, rows;
-function setup() {
-    createCanvas(400, 400);
+  }
+  
+  let grid;
+  // tamanho dos quadrados é o w
+  let w = 6;
+  let cols, rows;
+  let hueValue = 200;
+  
+  function withinCols(i) {
+    return i >= 0 && i <= cols - 1;
+  }
+  
+  function withinRows(j) {
+    return j >= 0 && j <= rows - 1;
+  }
+  
+  function setup() {
+    createCanvas(600, 1200);
+    colorMode(HSB, 360, 255, 255);
     cols = width / w;
     rows = height / w;
     grid = make2DArray(cols, rows);
+  }
+  
+  function mouseDragged() {
+    let mouseCol = floor(mouseX / w);
+    let mouseRow = floor(mouseY / w);
     
-    for (let i = 0; i < cols; i++) {
-        for (let j = 0; j < rows; j++) {
-            grid [i][j] = 0;
+    // efeito de aleatoriedade dos grãos
+    let matrix = 5;
+    let extent = floor(matrix / 2);
+    for (let i = -extent; i <= extent; i++) {
+      for (let j = -extent; j <= extent; j++) {
+        if (random(1) < 0.75) {
+          let col = mouseCol + i;
+          let row = mouseRow + j;
+          if (withinCols(col) && withinRows(row)) {
+            grid[col][row] = hueValue;
+          }
         }
+      }
     }
-
-
-    grid [20][10] = 1;
-
-}
-
-function draw() {
+    // mudança da cor da areia
+    hueValue += 1;
+    if (hueValue > 360) {
+      hueValue = 1;
+    }
+  }
+  
+  function draw() {
     background(0);
-
+    
+    // areia
     for (let i = 0; i < cols; i++) {
-        for (let j = 0; j < rows; j++) {
-            stroke(255);
-            fill(grid[i][j]*255);
-            let x = i * w;
-            let y = j * w;
-            square(x, y, w);
-
+      for (let j = 0; j < rows; j++) {
+        noStroke();
+        if (grid[i][j] > 0) {
+          fill(grid[i][j], 255, 255);
+          let x = i * w;
+          let y = j * w;
+          square(x, y, w);
         }
+      }
     }
-
+    
+    // animação 2D das areias
     let nextGrid = make2DArray(cols, rows);
+    
+
     for (let i = 0; i < cols; i++) {
-        for (let j = 0; j < rows; j++) {
-            let state = grid[cols][rows];
-            if (state === 1) {
-                let below = grid [i][j + 1];
-                if (below === 0) {
-                    nextGrid[i][j] = 0;
-                    nextGrid [i][j + 1] = 1;
-                }
-            }
-
+      for (let j = 0; j < rows ; j++) {
+      
+        let state = grid[i][j];
+        
+       
+        if (state > 0) {
+         
+          let below = grid[i][j + 1];
+          
+        
+          let dir = 1;
+          if (random(1) < 0.5) {
+            dir *= -1;
+          }
+          
+       
+          let belowA = -1;
+          let belowB = -1;
+          if (withinCols(i + dir)) {
+            belowA = grid[i + dir][j + 1];
+          }
+          if (withinCols(i - dir)) {
+            belowB = grid[i - dir][j + 1];
+          }
+          
+          
+          
+          if (below === 0) {
+            nextGrid[i][j + 1] = state;
+          } else if (belowA === 0) {
+            nextGrid[i + dir][j + 1] = state;
+          } else if (belowB === 0) {
+            nextGrid[i - dir][j + 1] = state;
+        
+          } else {
+            nextGrid[i][j] = state;
+          }
         }
+      }
     }
- 
-
-}
-
+    grid = nextGrid;
+  }
+  
